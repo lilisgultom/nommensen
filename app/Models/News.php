@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasEvents;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class News extends Model
 {
-    use HasFactory;
     protected $fillable = [
         'title',
         'content',
@@ -17,9 +16,18 @@ class News extends Model
         'slug',
     ];
 
-    /**
-     * Relasi: News ini dimiliki oleh (dibuat oleh) satu User.
-     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->users_id = Auth::id();
+            if (empty($model->slug)) {
+                $model->slug = Str::slug($model->title);
+            }
+        });
+    }
+
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'users_id');
